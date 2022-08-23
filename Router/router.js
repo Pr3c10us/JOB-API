@@ -1,19 +1,8 @@
-const Joi = require('joi');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const {
-  jobJoiSchema,
-  jobModel,
-} = require('../Database//jobModel');
-const asyncwrapper = require('../middleware/async');
-const { StatusCodes } = require('http-status-codes');
-const badReqErr = require('../Error/badReqErr');
 const {
   register,
   login,
   updateprofile,
 } = require('../controller/signing');
-const unauthorizedErr = require('../Error/unauthorized');
 const authorize = require('../middleware/auth');
 const {
   createJob,
@@ -21,9 +10,6 @@ const {
   deleteJob,
   updateJob,
 } = require('../controller/jobs');
-const {
-  registerModel,
-} = require('../Database/signingModel');
 const router = require('express').Router();
 
 router

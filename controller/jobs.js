@@ -1,6 +1,3 @@
-const Joi = require('joi');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const {
   jobJoiSchema,
   jobModel,
@@ -8,11 +5,6 @@ const {
 const asyncwrapper = require('../middleware/async');
 const { StatusCodes } = require('http-status-codes');
 const badReqErr = require('../Error/badReqErr');
-const {
-  register,
-  login,
-} = require('../controller/signing');
-const unauthorizedErr = require('../Error/unauthorized');
 //
 //
 //
@@ -42,10 +34,44 @@ const createJob = asyncwrapper(async (req, res) => {
 //GET ALL JOB THAT BELONGS TO USER
 //
 const getAllJobs = asyncwrapper(async (req, res) => {
-  //get all data from database
-  const allJobs = await jobModel.find({
-    userID: req.user.userID,
-  });
+  let {
+    Position,
+    Status,
+    'Job Type': JobType,
+    sort,
+  } = req.query;
+  let queryObj = {};
+  queryObj.userID = req.user.userID;
+
+  if (Position) {
+    queryObj.Position = { $regex: Position, $options: 'i' };
+  }
+  if (Status) {
+    queryObj.Status = Status;
+  }
+  if (JobType) {
+    queryObj['Job Type'] = JobType;
+  }
+
+  //
+  let sortObj = {};
+  if (sort) {
+    if (sort == 'latest') {
+      sortObj.Date = 1;
+    } else if (sort == 'oldest') {
+      sortObj.Date = -1;
+    } else if (sort == 'a-z') {
+      sortObj.Position = 1;
+    } else if (sort == 'z-a') {
+      sortObj.Position = -1;
+    } else {
+      throw new badReqErr(`sort can not be ${sort}`);
+    }
+  }
+  //get all data based on querys from database
+  const allJobs = await jobModel
+    .find(queryObj)
+    .sort(sortObj);
 
   res.status(StatusCodes.OK).json({
     nbHits: allJobs.length,
