@@ -51,8 +51,8 @@ const register = asyncwrapper(async (req, res) => {
     .findOne({
       $or: [{ username: username }, { email: username }],
     })
-    .select('-password -_id -__v');
-  let { lastname, country } = user;
+    .select('-password -__v');
+  let { lastname, country, _id: userID } = user;
   const token = jwt.sign(
     {
       email,
@@ -60,6 +60,7 @@ const register = asyncwrapper(async (req, res) => {
       firstname,
       lastname,
       country,
+      userID,
     },
     process.env.JWT_SECRET,
     {
@@ -137,5 +138,23 @@ const login = asyncwrapper(async (req, res) => {
     .status(StatusCodes.ACCEPTED)
     .json({ msg: `Welcome ${userExist.firstname}` });
 });
+//
+//
+//
+//Update user profile
+//
+const updateprofile = asyncwrapper(async (req, res) => {
+  const { userID } = req.user;
+  console.log(userID);
 
-module.exports = { register, login };
+  const updatedProfile =
+    await registerModel.findOneAndUpdate(
+      { _id: userID },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+  res.status(StatusCodes.OK).json({ updatedProfile });
+});
+
+module.exports = { register, login, updateprofile };

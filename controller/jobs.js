@@ -44,7 +44,7 @@ const createJob = asyncwrapper(async (req, res) => {
 const getAllJobs = asyncwrapper(async (req, res) => {
   //get all data from database
   const allJobs = await jobModel.find({
-    username: req.user.username,
+    userID: req.user.userID,
   });
 
   res.status(StatusCodes.OK).json({
@@ -52,5 +52,54 @@ const getAllJobs = asyncwrapper(async (req, res) => {
     Jobs: allJobs,
   });
 });
+//
+//
+//
+//Delete a job controller
+//
+const deleteJob = asyncwrapper(async (req, res) => {
+  let { jobID } = req.params;
 
-module.exports = { createJob, getAllJobs };
+  //check if job exist
+  const job = await jobModel.findOne({ _id: jobID });
+  if (!job) {
+    throw new badReqErr('Job does not exist');
+  }
+
+  //delete job
+  await jobModel.deleteOne({ _id: jobID });
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: 'Job has been deleted' });
+});
+//
+//
+//
+//Update job
+//
+const updateJob = asyncwrapper(async (req, res) => {
+  let { jobID } = req.params;
+
+  //check if job exist
+  const job = await jobModel.findOne({ _id: jobID });
+  if (!job) {
+    throw new badReqErr('Job does not exist');
+  }
+
+  //update data
+  const updatedJob = await jobModel.findOneAndUpdate(
+    { _id: jobID },
+    req.body,
+    { new: true, runValidators: true }
+  );
+
+  res.status(StatusCodes.OK).json({ updatedJob });
+});
+
+module.exports = {
+  createJob,
+  getAllJobs,
+  deleteJob,
+  updateJob,
+};
